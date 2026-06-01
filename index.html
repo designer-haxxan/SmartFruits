@@ -8,448 +8,789 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
     <style>
-        /* ── Base ── */
-        body { font-family:'Poppins',sans-serif; background:#F1F8E9; font-size:.875rem; }
-        :root { --gp:#2E7D32; --gd:#1B5E20; --gb:#C8E6C9; }
+        /* ═══════════════════════════════════════ BASE ═══════════════════════════════════════ */
+        :root { --gp:#2E7D32; --gd:#1B5E20; --gl:#A5D6A7; --gb:#C8E6C9; --bg:#F1F8E9; }
+        * { font-family:'Poppins',sans-serif; box-sizing:border-box; }
+        body { background:var(--bg); font-size:.9rem; margin:0; padding:0; }
 
-        /* ── Navbar ── */
-        .sf-nav { background:var(--gp); color:#fff; padding:10px 16px;
-                  display:flex; align-items:center; gap:10px;
-                  box-shadow:0 2px 6px rgba(0,0,0,.15); position:sticky; top:0; z-index:100; }
-        .sf-nav-brand { font-weight:700; font-size:1rem; color:#fff; }
-        .sf-sync-info { font-size:.7rem; color:rgba(255,255,255,.75); margin-left:auto; }
+        /* ═══════════════════════════════════════ NAVBAR ══════════════════════════════════════ */
+        .sf-nav {
+            background:var(--gp); color:#fff;
+            padding:10px 16px;
+            display:flex; align-items:center; gap:10px;
+            box-shadow:0 2px 6px rgba(0,0,0,.2);
+            position:sticky; top:0; z-index:200;
+        }
+        .sf-nav-brand { font-weight:700; font-size:1.05rem; flex:1; }
+        .sf-sync-badge {
+            font-size:.68rem; color:rgba(255,255,255,.85);
+            background:rgba(255,255,255,.15); border-radius:20px;
+            padding:3px 10px; white-space:nowrap;
+        }
+        .sf-sync-badge.live { background:rgba(100,255,100,.22); color:#c8ffc8; }
 
-        /* ── Toolbar ── */
-        .sf-toolbar { background:#fff; border-bottom:1px solid var(--gb);
-                      padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        /* ═══════════════════════════════════════ TOOLBAR ════════════════════════════════════ */
+        .sf-toolbar {
+            background:#fff; border-bottom:1px solid var(--gb);
+            padding:8px 16px;
+            display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+        }
+        .sf-toolbar .sf-stats {
+            margin-left:auto; font-size:.72rem; color:#888;
+            display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+        }
+        .sf-stat-pill {
+            background:var(--bg); border:1px solid var(--gb);
+            border-radius:12px; padding:2px 10px;
+            font-size:.7rem; color:var(--gd); font-weight:500;
+        }
 
-        /* ── Filter card ── */
-        .filter-card { background:#fff; border:none; box-shadow:0 2px 6px rgba(0,0,0,.05);
-                       border-radius:8px; padding:16px; margin-bottom:20px; }
-        .filter-card .form-label { font-weight:600; font-size:.82rem; }
-        .btn-success  { background:var(--gp) !important; border-color:var(--gp) !important; }
-        .btn-success:hover { background:var(--gd) !important; border-color:var(--gd) !important; }
-        .btn-outline-success { color:var(--gp) !important; border-color:var(--gp) !important; }
-        .btn-outline-success:hover { background:var(--gp) !important; color:#fff !important; }
-        .btn-report { min-width:160px; margin-right:8px; margin-bottom:8px; }
+        /* ═══════════════════════════════════════ NO-DATA SCREEN ═════════════════════════════ */
+        #noDataScreen {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            min-height:65vh; text-align:center; padding:30px 20px;
+        }
+        .nd-icon { font-size:4rem; color:#bbb; }
+        .nd-title { color:#777; font-weight:600; font-size:1.15rem; margin:16px 0 8px; }
+        .nd-info {
+            background:#fff; border:1px solid var(--gb); border-radius:10px;
+            padding:16px 22px; max-width:440px; font-size:.83rem; color:#555;
+            line-height:1.8; text-align:left; margin-top:10px;
+        }
+        .nd-info strong { color:var(--gd); }
+        .nd-info code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:.78rem; }
 
-        /* ── Report containers ── */
-        .report-container { display:none; margin-top:20px; }
-        .report-container.active { display:block; }
-        .report-card { border:none; box-shadow:0 2px 6px rgba(0,0,0,.05); margin-bottom:20px; border-radius:8px; overflow:hidden; }
-        .report-card .card-header { background:#fff; border-bottom:2px solid var(--gp); padding:1rem; }
-        .report-card .card-header h5 { margin:0; color:var(--gp); font-weight:600; }
+        /* ═══════════════════════════════════════ FILTER CARD ════════════════════════════════ */
+        .filter-card {
+            background:#fff; border:none;
+            box-shadow:0 2px 8px rgba(0,0,0,.06);
+            border-radius:10px; padding:14px 16px; margin-bottom:18px;
+        }
+        .rpt-btn-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:0; }
+        .rpt-btn {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:7px 16px; border-radius:8px; font-size:.82rem;
+            font-weight:500; cursor:pointer; border:1.5px solid var(--gp);
+            background:#fff; color:var(--gp); transition:all .15s;
+            white-space:nowrap;
+        }
+        .rpt-btn.active, .rpt-btn:hover { background:var(--gp); color:#fff; }
 
-        /* ── Summary grid (matches Reports.aspx exactly) ── */
-        .summary-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; padding:10px 0; }
-        .summary-item { background:#f8fff8; border:1px solid #C8E6C9; border-radius:6px;
-                        padding:7px 12px; display:flex; justify-content:space-between; align-items:center; }
-        .summary-item.no-sale { opacity:.55; }
-        .s-name { font-weight:500; color:#1B5E20; font-size:.85rem; }
-        .s-qty  { font-weight:600; color:var(--gp); font-size:.83rem; white-space:nowrap; }
-        .s-qty.none { color:#999; font-style:italic; }
+        .date-row {
+            display:none; margin-top:12px;
+            border-top:1px solid #f0f0f0; padding-top:12px;
+        }
+        .date-row.show { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
 
-        /* ── Sales grid (matches Reports.aspx exactly) ── */
-        .sales-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; align-items:start; }
-        @media(max-width:768px) { .sales-grid { grid-template-columns:repeat(2,1fr); } }
-        @media(max-width:480px) { .sales-grid { grid-template-columns:1fr; } }
-        .sales-shop-card { border:1.5px solid #ddd; border-radius:6px; padding:10px 12px; break-inside:avoid; }
-        .sales-shop-name { color:#c0392b; font-weight:700; font-size:1rem;
-                           border-bottom:2px solid #c0392b; padding-bottom:5px; margin-bottom:8px;
-                           text-transform:uppercase; letter-spacing:.02em; }
+        /* ═══════════════════════════════════════ REPORT CONTAINERS ═════════════════════════ */
+        .report-zone { display:none; }
+        .report-zone.active { display:block; }
+        .report-card {
+            background:#fff; border-radius:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,.06);
+            overflow:hidden; margin-bottom:20px;
+        }
+        .report-card-header {
+            background:#fff; border-bottom:2px solid var(--gp);
+            padding:12px 16px; display:flex; align-items:center; gap:8px;
+        }
+        .report-card-header h5 { margin:0; color:var(--gp); font-weight:600; font-size:.95rem; flex:1; }
+        .period-label { font-size:.75rem; color:#999; font-weight:400; }
+
+        /* ═══════════════════════════════════════ SUMMARY GRID ═══════════════════════════════ */
+        .summary-grid {
+            display:grid; grid-template-columns:repeat(2,1fr); gap:6px; padding:12px;
+        }
+        .summary-item {
+            background:#f8fff8; border:1px solid var(--gb);
+            border-radius:7px; padding:8px 12px;
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        .s-name { font-weight:500; color:var(--gd); font-size:.85rem; }
+        .s-qty  { font-weight:700; color:var(--gp); font-size:.83rem; white-space:nowrap; }
+
+        /* ═══════════════════════════════════════ SALES GRID ═════════════════════════════════ */
+        .sales-grid {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:12px;
+        }
+        .sales-shop-card {
+            border:1.5px solid #ddd; border-radius:8px; padding:10px 12px; break-inside:avoid;
+        }
+        .sales-shop-name {
+            color:#c0392b; font-weight:700; font-size:.9rem;
+            border-bottom:2px solid #c0392b; padding-bottom:5px; margin-bottom:8px;
+            text-transform:uppercase; letter-spacing:.02em;
+        }
         .sales-item-table { width:100%; border-collapse:collapse; }
-        .sales-item-table thead th { font-size:.72rem; font-weight:700; color:#555;
-                                     border-bottom:1.5px solid #ccc; padding:3px 5px; }
-        .sales-item-table tbody td { font-size:.85rem; font-weight:600; padding:4px 5px;
-                                     border-bottom:1px dashed #eee; color:#111; }
+        .sales-item-table thead th {
+            font-size:.7rem; font-weight:700; color:#555;
+            border-bottom:1.5px solid #ccc; padding:3px 4px;
+        }
+        .sales-item-table tbody td {
+            font-size:.83rem; font-weight:600; padding:3px 4px;
+            border-bottom:1px dashed #eee; color:#111;
+        }
         .sales-item-table tbody tr:last-child td { border-bottom:none; }
-        .sales-sr     { color:#111; font-size:.75rem; font-weight:500; width:28px; }
+        .sales-sr     { color:#999; font-size:.72rem; width:24px; }
         .sales-qty-val  { color:#111; font-weight:700; }
-        .sales-unit-val { color:#111; font-size:.78rem; }
+        .sales-unit-val { color:#555; font-size:.76rem; }
 
-        /* ── No-data screen ── */
-        #noDataScreen { text-align:center; padding:70px 20px; }
-        #noDataScreen .nd-icon { font-size:4rem; color:#ccc; }
-        #noDataScreen h5 { color:#888; margin-top:14px; }
-        #noDataScreen p { color:#aaa; font-size:.84rem; max-width:400px; margin:8px auto 0; line-height:1.8; }
+        /* ═══════════════════════════════════════ PRODUCT GRID ═══════════════════════════════ */
+        .product-grid {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:12px;
+        }
+        .product-card {
+            border:1.5px solid var(--gb); border-radius:8px; padding:10px 12px; break-inside:avoid;
+        }
+        .product-card-name {
+            color:var(--gd); font-weight:700; font-size:.9rem;
+            border-bottom:2px solid var(--gp); padding-bottom:5px; margin-bottom:8px;
+        }
+        .product-card-code { font-size:.7rem; color:#aaa; font-weight:400; margin-left:4px; }
+        .product-cust-table { width:100%; border-collapse:collapse; }
+        .product-cust-table thead th {
+            font-size:.7rem; font-weight:700; color:#555;
+            border-bottom:1.5px solid #ccc; padding:3px 4px;
+        }
+        .product-cust-table tbody td {
+            font-size:.83rem; font-weight:500; padding:3px 4px;
+            border-bottom:1px dashed #eee; color:#111;
+        }
+        .product-cust-table tbody tr:last-child td { border-bottom:none; }
 
-        /* ── Print ── */
+        /* ═══════════════════════════════════════ TOAST ══════════════════════════════════════ */
+        .toast-container { z-index:9999; }
+
+        /* ═══════════════════════════════════════ MOBILE ═════════════════════════════════════ */
+        @media (max-width:767px) {
+            .sales-grid, .product-grid { grid-template-columns:1fr !important; gap:8px; }
+            .summary-grid { grid-template-columns:1fr !important; }
+            .sf-sync-badge { display:none; }
+            .sf-stats { margin-left:0; margin-top:4px; width:100%; }
+            .sf-toolbar { padding:6px 10px; }
+            .filter-card { padding:10px 12px; }
+            .rpt-btn { font-size:.78rem; padding:6px 12px; }
+            .report-card-header { padding:10px 12px; }
+        }
+        @media (max-width:480px) {
+            body { font-size:.84rem; }
+            .sf-nav { padding:8px 12px; }
+            .sf-nav-brand { font-size:.95rem; }
+            .summary-item { flex-direction:column; align-items:flex-start; gap:2px; }
+            .s-qty { font-size:.82rem; }
+        }
+
+        /* ═══════════════════════════════════════ PRINT ══════════════════════════════════════ */
         @page { size:A4 portrait; margin:10mm 12mm 16mm 12mm; }
         @media print {
-            .sf-nav,.sf-toolbar,.filter-card,.no-print { display:none !important; }
-            body { background:#fff !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-            .report-container { display:none !important; }
-            .report-container.active { display:block !important; }
-            .summary-grid { grid-template-columns:repeat(2,1fr) !important; gap:4pt !important; }
-            .summary-item { border:0.5pt solid #C8E6C9 !important; padding:4pt 6pt !important; }
+            .sf-nav, .sf-toolbar, .filter-card, .no-print, .toast-container { display:none !important; }
+            body { background:#fff !important; font-size:9.5pt !important;
+                   -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+            .report-zone { display:none !important; }
+            .report-zone.active { display:block !important; }
+            .report-card { box-shadow:none !important; }
+            .report-card-header { display:none !important; }
+
+            /* Summary */
+            .summary-grid { grid-template-columns:repeat(2,1fr) !important; gap:4pt !important; padding:0 !important; }
+            .summary-item { padding:4pt 6pt !important; border:0.5pt solid var(--gb) !important; }
             .s-name { font-size:8pt !important; }
             .s-qty  { font-size:8pt !important; }
-            .sales-grid { grid-template-columns:repeat(3,1fr) !important; gap:5pt !important; }
+
+            /* Sales */
+            .sales-grid { grid-template-columns:repeat(3,1fr) !important; gap:5pt !important; padding:0 !important; }
             .sales-shop-card { border:0.75pt solid #bbb !important; padding:5pt 6pt !important; break-inside:avoid !important; }
-            .sales-shop-name { font-size:9pt !important; border-bottom:1pt solid #c0392b !important; }
-            .sales-item-table thead th { font-size:6.5pt !important; }
-            .sales-item-table tbody td { font-size:8pt !important; }
-            .report-card { box-shadow:none !important; }
-            .report-card .card-header { display:none !important; }
+            .sales-shop-name { font-size:8.5pt !important; border-bottom:1pt solid #c0392b !important; }
+            .sales-item-table thead th { font-size:6pt !important; }
+            .sales-item-table tbody td { font-size:7.5pt !important; }
+
+            /* Product */
+            .product-grid { grid-template-columns:repeat(3,1fr) !important; gap:5pt !important; padding:0 !important; }
+            .product-card { border:0.75pt solid #bbb !important; padding:5pt 6pt !important; break-inside:avoid !important; }
+            .product-card-name { font-size:8.5pt !important; border-bottom:1pt solid var(--gp) !important; }
+            .product-cust-table thead th { font-size:6pt !important; }
+            .product-cust-table tbody td { font-size:7.5pt !important; }
         }
     </style>
 </head>
 <body>
 
-<!-- Navbar -->
+<!-- Toast container -->
+<div class="toast-container position-fixed top-0 end-0 p-3 no-print"></div>
+
+<!-- ══ Navbar ══ -->
 <div class="sf-nav">
-    <i class="bi bi-basket2-fill me-1" style="font-size:1.1rem;"></i>
+    <i class="bi bi-basket2-fill" style="font-size:1.15rem;"></i>
     <span class="sf-nav-brand">SmartFruits</span>
-    <span class="sf-sync-info" id="syncInfo">No data</span>
+    <span class="sf-sync-badge" id="syncBadge">No data</span>
 </div>
 
-<!-- Toolbar -->
+<!-- ══ Toolbar ══ -->
 <div class="sf-toolbar no-print">
-    <label class="btn btn-sm btn-outline-success mb-0" for="importFile" style="font-size:.78rem;">
-        <i class="bi bi-upload me-1"></i>Import Data
+    <label class="btn btn-sm btn-outline-success mb-0" for="importFile" style="font-size:.78rem;cursor:pointer;">
+        <i class="bi bi-upload me-1"></i>Import
     </label>
     <input type="file" id="importFile" accept=".json" class="d-none" />
+
     <button id="btnExport" class="btn btn-sm btn-success" style="font-size:.78rem;">
         <i class="bi bi-download me-1"></i>Export
     </button>
-    <span id="billCountBadge" class="ms-auto text-muted" style="font-size:.72rem;"></span>
+
+    <button id="btnRefresh" class="btn btn-sm btn-outline-secondary" style="font-size:.78rem;" title="Re-read localStorage">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+    </button>
+
+    <div class="sf-stats">
+        <span class="sf-stat-pill" id="statBills" style="display:none;"></span>
+        <span class="sf-stat-pill" id="statSync"  style="display:none;"></span>
+    </div>
 </div>
 
-<!-- No-data screen -->
+<!-- ══ No-data screen ══ -->
 <div id="noDataScreen">
     <div class="nd-icon"><i class="bi bi-database-slash"></i></div>
-    <h5>No Offline Data Found</h5>
-    <p>
+    <div class="nd-title">No Offline Data Found</div>
+    <div class="nd-info">
         <strong>Same browser as SmartFruits?</strong><br>
-        Data syncs automatically — just open the Bills tab in SmartFruits to start billing.<br><br>
+        Open the <strong>Bills</strong> tab once &mdash; data syncs automatically on every bill you save.<br><br>
         <strong>Getting data from another device?</strong><br>
-        Ask them to click <strong>Export</strong> on the Bills page and send the <code>.json</code> file.<br>
-        Then click <strong>Import Data</strong> above.
-    </p>
+        Ask them to click <strong>Export</strong> on the Bills page and share the <code>.json</code> file.
+        Then click <strong>Import</strong> above.<br><br>
+        <strong>Already imported / used before?</strong><br>
+        Click <strong><i class="bi bi-arrow-clockwise"></i> Refresh</strong> to re-check.
+    </div>
 </div>
 
-<!-- Main content -->
+<!-- ══ Main content ══ -->
 <div id="mainContent" style="display:none;" class="container-fluid px-3 py-3">
 
-    <!-- Filter Card -->
+    <!-- Filter card -->
     <div class="filter-card no-print">
-        <div class="row align-items-end g-3">
-            <!-- Report type buttons -->
-            <div class="col-12">
-                <label class="form-label d-block">Report Type</label>
-                <button class="btn btn-success btn-report" id="btnSummaryReport">
-                    <i class="bi bi-bar-chart-fill me-2"></i>Summary Report
+
+        <!-- Report type buttons -->
+        <div class="rpt-btn-row">
+            <button class="rpt-btn active" id="btnSummary">
+                <i class="bi bi-bar-chart-fill"></i>Summary
+            </button>
+            <button class="rpt-btn" id="btnSales">
+                <i class="bi bi-shop"></i>Sales
+            </button>
+            <button class="rpt-btn" id="btnProduct">
+                <i class="bi bi-boxes"></i>Product
+            </button>
+        </div>
+
+        <!-- Date filter -->
+        <div class="date-row show" id="dateRow">
+            <div>
+                <label style="font-size:.78rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">From</label>
+                <input type="date" id="rptFrom" class="form-control form-control-sm" style="min-width:130px;" />
+            </div>
+            <div>
+                <label style="font-size:.78rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">To</label>
+                <input type="date" id="rptTo" class="form-control form-control-sm" style="min-width:130px;" />
+            </div>
+            <!-- Product filter (only visible for Product report) -->
+            <div id="productFilterWrap" style="display:none;">
+                <label style="font-size:.78rem;font-weight:600;color:#555;display:block;margin-bottom:3px;">Product</label>
+                <select id="productFilterSel" class="form-select form-select-sm" style="min-width:160px;">
+                    <option value="">-- All Products --</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:6px;align-items:flex-end;">
+                <button id="btnLoad" class="btn btn-success btn-sm px-3">
+                    <i class="bi bi-search me-1"></i>Load
                 </button>
-                <button class="btn btn-outline-success btn-report" id="btnSalesReport">
-                    <i class="bi bi-shop me-2"></i>Sales Report
+                <button id="btnToday" class="btn btn-outline-secondary btn-sm" title="Set today">
+                    <i class="bi bi-calendar-check"></i>
+                </button>
+                <button id="btnAllDates" class="btn btn-outline-secondary btn-sm" title="All dates">
+                    All
+                </button>
+                <button id="btnPrint" class="btn btn-outline-secondary btn-sm" title="Print">
+                    <i class="bi bi-printer"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Date filter row (shared) -->
-        <div id="dateFilterRow" style="display:none; margin-top:14px;">
-            <hr class="my-2" />
-            <div class="row g-3 align-items-end">
-                <div class="col-md-3 col-6">
-                    <label class="form-label">From Date</label>
-                    <input type="date" id="rptFrom" class="form-control form-control-sm" />
-                </div>
-                <div class="col-md-3 col-6">
-                    <label class="form-label">To Date</label>
-                    <input type="date" id="rptTo" class="form-control form-control-sm" />
-                </div>
-                <div class="col-md-3 col-6">
-                    <button id="btnLoadReport" class="btn btn-success btn-sm w-100">
-                        <i class="bi bi-search me-1"></i>Load Report
-                    </button>
-                </div>
-                <div class="col-md-1 col-6">
-                    <button id="btnPrintReport" class="btn btn-outline-secondary btn-sm w-100" title="Print">
-                        <i class="bi bi-printer me-1"></i>Print
-                    </button>
-                </div>
+    </div>
+
+    <!-- ── Summary Report ── -->
+    <div id="zoneSummary" class="report-zone active">
+        <div class="report-card">
+            <div class="report-card-header">
+                <h5><i class="bi bi-bar-chart-fill me-2"></i>Summary Report</h5>
+                <span class="period-label" id="lblSummaryPeriod"></span>
+            </div>
+            <div id="contentSummary">
+                <div class="text-center text-muted py-5">Click Load to generate.</div>
             </div>
         </div>
     </div>
 
-    <!-- Summary Report -->
-    <div id="summaryContainer" class="report-container">
-        <div class="report-card card">
-            <div class="card-header">
-                <h5><i class="bi bi-bar-chart-fill me-2"></i>Summary Report
-                    <small id="summaryPeriod" class="text-muted fw-normal" style="font-size:.8rem;"></small>
-                </h5>
+    <!-- ── Sales Report ── -->
+    <div id="zoneSales" class="report-zone">
+        <div class="report-card">
+            <div class="report-card-header">
+                <h5><i class="bi bi-shop me-2"></i>Sales Report</h5>
+                <span class="period-label" id="lblSalesPeriod"></span>
             </div>
-            <div class="card-body" id="summaryContent">
-                <div class="text-center text-muted py-4">Select a date range and click Load Report.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sales Report -->
-    <div id="salesContainer" class="report-container">
-        <div class="report-card card">
-            <div class="card-header">
-                <h5><i class="bi bi-shop me-2"></i>Sales Report
-                    <small id="salesPeriod" class="text-muted fw-normal" style="font-size:.8rem;"></small>
-                </h5>
-            </div>
-            <div class="card-body" id="salesContent">
-                <div class="text-center text-muted py-4">Select a date range and click Load Report.</div>
+            <div id="contentSales">
+                <div class="text-center text-muted py-5">Click Load to generate.</div>
             </div>
         </div>
     </div>
 
-</div><!-- /mainContent -->
+    <!-- ── Product Report ── -->
+    <div id="zoneProduct" class="report-zone">
+        <div class="report-card">
+            <div class="report-card-header">
+                <h5><i class="bi bi-boxes me-2"></i>Product Report</h5>
+                <span class="period-label" id="lblProductPeriod"></span>
+            </div>
+            <div id="contentProduct">
+                <div class="text-center text-muted py-5">Click Load to generate.</div>
+            </div>
+        </div>
+    </div>
 
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    var SF_KEY      = 'sf_data';
-    var _data       = null;
-    var _activeRpt  = '';   /* 'summary' | 'sales' */
+/* ════════════════════════════════════════════════════════════════
+   SmartFruits Offline Report App
+   Auto-detects localStorage (same origin) and updates in real time
+   via the 'storage' event + a fallback polling interval.
+════════════════════════════════════════════════════════════════ */
 
-    /* ── helpers ── */
-    function fmtNum(n) { return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
-    function fmtQty(n) { return n%1===0 ? parseInt(n).toString() : parseFloat(n).toFixed(2); }
-    function esc(s)    { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function fmtDate(d){ if(!d) return 'All'; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+var SF_KEY      = 'sf_data';
+var _data       = null;
+var _activeRpt  = 'summary';   /* 'summary' | 'sales' | 'product' */
+var _lastRaw    = null;        /* for polling comparison */
 
-    /* ── Boot ── */
-    function loadData() {
-        try { _data = JSON.parse(localStorage.getItem(SF_KEY)); } catch(e) { _data=null; }
-        var ok = _data && Array.isArray(_data.bills) && _data.bills.length > 0;
-        document.getElementById('noDataScreen').style.display = ok ? 'none' : '';
-        document.getElementById('mainContent').style.display  = ok ? ''     : 'none';
-        if (!ok) return;
-        document.getElementById('syncInfo').textContent       = 'Last sync: ' + (_data.ts || '—');
-        document.getElementById('billCountBadge').textContent = _data.bills.length + ' bills';
-        /* Auto-load summary with all data */
-        activateReport('summary');
-        renderSummary('', '');
+/* ── Helpers ── */
+function fmtNum(n){ return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+function fmtQty(n){ n=parseFloat(n||0); return n%1===0 ? parseInt(n).toString() : n.toFixed(2); }
+function esc(s)   { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d){
+    if (!d) return 'All';
+    var p = d.slice(0,10).split('-');
+    return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d;
+}
+function today(){
+    var d = new Date(), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+    return d.getFullYear()+'-'+mm+'-'+dd;
+}
+function filterByDate(bills, from, to){
+    if (!from && !to) return bills;
+    return bills.filter(function(b){
+        var d = (b.saleDate||'').slice(0,10);
+        if (from && d < from) return false;
+        if (to   && d > to)   return false;
+        return true;
+    });
+}
+function showToast(msg, ok){
+    var el = document.createElement('div');
+    el.className = 'toast align-items-center text-white border-0 ' + (ok ? 'bg-success' : 'bg-danger');
+    el.setAttribute('role','alert');
+    el.innerHTML = '<div class="d-flex"><div class="toast-body">' + msg +
+        '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+    document.querySelector('.toast-container').appendChild(el);
+    var t = new bootstrap.Toast(el, { delay:3500 }); t.show();
+    el.addEventListener('hidden.bs.toast', function(){ el.remove(); });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   BOOT — read localStorage
+════════════════════════════════════════════════════════════════ */
+function loadData(silent){
+    var raw = null;
+    try { raw = localStorage.getItem(SF_KEY); } catch(e) {}
+
+    if (raw === _lastRaw && _data !== null) return; /* no change */
+    _lastRaw = raw;
+
+    try { _data = raw ? JSON.parse(raw) : null; } catch(e) { _data = null; }
+
+    var ok = _data && Array.isArray(_data.bills) && _data.bills.length > 0;
+
+    document.getElementById('noDataScreen').style.display = ok ? 'none' : '';
+    document.getElementById('mainContent').style.display  = ok ? ''     : 'none';
+
+    if (!ok) {
+        document.getElementById('syncBadge').textContent = 'No data';
+        document.getElementById('syncBadge').classList.remove('live');
+        return;
     }
 
-    /* ── Activate report type ── */
-    function activateReport(type) {
-        _activeRpt = type;
-        document.getElementById('summaryContainer').classList.toggle('active', type === 'summary');
-        document.getElementById('salesContainer').classList.toggle('active',   type === 'sales');
-        document.getElementById('dateFilterRow').style.display = 'block';
+    /* Update stats */
+    var badge = document.getElementById('syncBadge');
+    badge.textContent = _data.bills.length + ' bills';
+    badge.classList.add('live');
 
-        document.getElementById('btnSummaryReport').className =
-            'btn btn-report ' + (type === 'summary' ? 'btn-success' : 'btn-outline-success');
-        document.getElementById('btnSalesReport').className =
-            'btn btn-report ' + (type === 'sales' ? 'btn-success' : 'btn-outline-success');
+    var statBills = document.getElementById('statBills');
+    statBills.textContent = _data.bills.length + ' bills stored';
+    statBills.style.display = '';
+
+    var statSync = document.getElementById('statSync');
+    statSync.textContent = 'Synced: ' + (_data.ts || '—');
+    statSync.style.display = '';
+
+    /* Populate product filter dropdown */
+    rebuildProductDropdown(_data.bills);
+
+    /* Re-render current report if content is already showing */
+    if (!silent && _activeRpt) runReport();
+}
+
+/* ── Build the product dropdown from stored bills ── */
+function rebuildProductDropdown(bills){
+    var products = {}, order = [];
+    bills.forEach(function(b){
+        (b.items||[]).forEach(function(it){
+            var name = (it.productName||'').trim();
+            if (name && !products[name]) { products[name] = true; order.push(name); }
+        });
+    });
+    order.sort();
+    var sel = document.getElementById('productFilterSel');
+    sel.innerHTML = '<option value="">-- All Products --</option>';
+    order.forEach(function(n){
+        var opt = document.createElement('option');
+        opt.value = n; opt.textContent = n;
+        sel.appendChild(opt);
+    });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   REPORT RUNNER
+════════════════════════════════════════════════════════════════ */
+function runReport(){
+    if (!_data) return;
+    var from = document.getElementById('rptFrom').value;
+    var to   = document.getElementById('rptTo').value;
+    if (_activeRpt === 'summary') renderSummary(from, to);
+    else if (_activeRpt === 'sales') renderSales(from, to);
+    else renderProduct(from, to);
+}
+
+function setActiveReport(type){
+    _activeRpt = type;
+    ['summary','sales','product'].forEach(function(t){
+        document.getElementById('zone' + t.charAt(0).toUpperCase() + t.slice(1))
+            .classList.toggle('active', t === type);
+        document.getElementById('btn' + t.charAt(0).toUpperCase() + t.slice(1))
+            .classList.toggle('active', t === type);
+    });
+    document.getElementById('productFilterWrap').style.display =
+        type === 'product' ? '' : 'none';
+}
+
+/* ─── SUMMARY REPORT ─── */
+function renderSummary(from, to){
+    var bills = filterByDate(_data.bills, from, to);
+    var c = document.getElementById('contentSummary');
+    document.getElementById('lblSummaryPeriod').textContent =
+        from || to ? ' — ' + (fmtDate(from)||'Start') + ' to ' + (fmtDate(to)||'Now') : ' — All dates';
+
+    if (!bills.length){
+        c.innerHTML='<div class="text-center text-muted py-5">No bills in this period.</div>'; return;
     }
 
-    /* ══════════════════════════════════════════════════
-       SUMMARY REPORT
-       Group: ProductName → Unit → totalQty
-    ══════════════════════════════════════════════════ */
-    function renderSummary(from, to) {
-        var bills = filterByDate(_data.bills, from, to);
-        var c = document.getElementById('summaryContent');
+    /* Aggregate: productName → unit → qty */
+    var groups={}, order=[];
+    bills.forEach(function(b){
+        (b.items||[]).forEach(function(it){
+            var name=(it.productName||'Unknown').trim();
+            if(!groups[name]){ groups[name]={}; order.push(name); }
+            var uk=it.unit||'';
+            groups[name][uk]=(groups[name][uk]||0)+parseFloat(it.qty||0);
+        });
+    });
 
-        if (!bills.length) {
-            c.innerHTML = '<div class="text-center text-muted py-5">No sales found for this period.</div>';
-            document.getElementById('summaryPeriod').textContent = '';
-            return;
+    if(!order.length){
+        c.innerHTML='<div class="text-center text-muted py-5">No product details yet. Bill in SmartFruits to sync items.</div>';
+        return;
+    }
+
+    var html='<div class="summary-grid">';
+    order.forEach(function(name){
+        var um=groups[name];
+        var qtyTxt=Object.keys(um).map(function(uk){
+            return fmtQty(um[uk])+(uk?' '+esc(uk):'');
+        }).join(' &bull; ');
+        html+='<div class="summary-item">'+
+            '<span class="s-name">'+esc(name)+'</span>'+
+            '<span class="s-qty">'+qtyTxt+'</span>'+
+            '</div>';
+    });
+    html+='</div>';
+    html+='<div class="px-3 pb-2 text-muted no-print" style="font-size:.72rem;">'+
+        '<i class="bi bi-info-circle me-1"></i>'+order.length+' product(s) &nbsp;|&nbsp; '+bills.length+' bill(s)</div>';
+    c.innerHTML=html;
+}
+
+/* ─── SALES REPORT ─── */
+function renderSales(from, to){
+    var bills = filterByDate(_data.bills, from, to);
+    var c = document.getElementById('contentSales');
+    document.getElementById('lblSalesPeriod').textContent =
+        from||to ? ' — '+(fmtDate(from)||'Start')+' to '+(fmtDate(to)||'Now') : ' — All dates';
+
+    if(!bills.length){
+        c.innerHTML='<div class="text-center text-muted py-5">No bills in this period.</div>'; return;
+    }
+
+    /* Group: shopKey → { shopCode, shopName, products } */
+    var shopsMap={}, shopOrder=[];
+    bills.forEach(function(b){
+        var sk=(b.shopCode||'')+'|'+(b.shopName||'Unknown');
+        if(!shopsMap[sk]){
+            shopsMap[sk]={ shopCode:b.shopCode||'', shopName:b.shopName||'Unknown', products:{}, prodOrder:[] };
+            shopOrder.push(sk);
         }
+        var sh=shopsMap[sk];
+        (b.items||[]).forEach(function(it){
+            var pk=(it.productName||'Unknown').trim();
+            if(!sh.products[pk]){ sh.products[pk]={}; sh.prodOrder.push(pk); }
+            var uk=it.unit||'';
+            sh.products[pk][uk]=(sh.products[pk][uk]||0)+parseFloat(it.qty||0);
+        });
+    });
 
-        /* Period label */
-        document.getElementById('summaryPeriod').textContent =
-            ' — ' + (from ? fmtDate(from) : 'All') + (to ? ' to ' + fmtDate(to) : '');
+    var anyItems=shopOrder.some(function(sk){ return shopsMap[sk].prodOrder.length>0; });
+    if(!anyItems){
+        c.innerHTML='<div class="text-center text-muted py-5">No product details yet.</div>'; return;
+    }
 
-        /* Aggregate: productName → unit → totalQty */
-        var groups = {}, order = [];
-        bills.forEach(function(b) {
-            (b.items || []).forEach(function(it) {
-                var key = esc(it.productName || 'Unknown');
-                if (!groups[key]) { groups[key] = {}; order.push(key); }
-                var uk = it.unit || '';
-                groups[key][uk] = (groups[key][uk] || 0) + parseFloat(it.qty || 0);
+    var html='<div class="sales-grid">';
+    shopOrder.forEach(function(sk){
+        var sh=shopsMap[sk];
+        if(!sh.prodOrder.length) return;
+        var label=sh.shopCode ? esc(sh.shopCode)+' &ndash; '+esc(sh.shopName) : esc(sh.shopName);
+        html+='<div class="sales-shop-card">'+
+            '<div class="sales-shop-name">'+label+'</div>'+
+            '<table class="sales-item-table">'+
+            '<thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Unit</th></tr></thead><tbody>';
+        var sr=1;
+        sh.prodOrder.forEach(function(pk){
+            var um=sh.products[pk];
+            Object.keys(um).forEach(function(uk){
+                if(um[uk]>0){
+                    html+='<tr>'+
+                        '<td class="sales-sr">'+sr+++'</td>'+
+                        '<td><strong>'+esc(pk)+'</strong></td>'+
+                        '<td class="sales-qty-val">'+fmtQty(um[uk])+'</td>'+
+                        '<td class="sales-unit-val">'+esc(uk)+'</td>'+
+                        '</tr>';
+                }
             });
         });
+        html+='</tbody></table></div>';
+    });
+    html+='</div>';
+    c.innerHTML=html;
+}
 
-        if (!order.length) {
-            c.innerHTML = '<div class="text-center text-muted py-5">No product details in stored data.<br>' +
-                '<small>Bills saved after the latest update include product details.</small></div>';
-            return;
-        }
+/* ─── PRODUCT REPORT ─── */
+function renderProduct(from, to){
+    var filterProd = document.getElementById('productFilterSel').value.trim().toLowerCase();
+    var bills = filterByDate(_data.bills, from, to);
+    var c = document.getElementById('contentProduct');
+    document.getElementById('lblProductPeriod').textContent =
+        from||to ? ' — '+(fmtDate(from)||'Start')+' to '+(fmtDate(to)||'Now') : ' — All dates';
 
-        var html = '<div class="summary-grid">';
-        order.forEach(function(name) {
-            var unitMap = groups[name];
-            var qtyParts = Object.keys(unitMap).map(function(uk) {
-                return fmtQty(unitMap[uk]) + (uk ? ' ' + esc(uk) : '');
-            }).join(' &bull; ');
-            html += '<div class="summary-item">' +
-                '<span class="s-name">' + name + '</span>' +
-                '<span class="s-qty">' + qtyParts + '</span>' +
-                '</div>';
-        });
-        html += '</div>';
-        html += '<div class="mt-3 text-muted no-print" style="font-size:.78rem;">' +
-            '<i class="bi bi-info-circle me-1"></i>' + order.length + ' product(s) sold &nbsp;|&nbsp; ' +
-            bills.length + ' bill(s)</div>';
-        c.innerHTML = html;
+    if(!bills.length){
+        c.innerHTML='<div class="text-center text-muted py-5">No bills in this period.</div>'; return;
     }
 
-    /* ══════════════════════════════════════════════════
-       SALES REPORT
-       Group: ShopCode → ProductName → Unit → totalQty
-       Rendered as 3-column shop cards (same as Reports.aspx)
-    ══════════════════════════════════════════════════ */
-    function renderSales(from, to) {
-        var bills = filterByDate(_data.bills, from, to);
-        var c = document.getElementById('salesContent');
-
-        if (!bills.length) {
-            c.innerHTML = '<div class="text-center text-muted py-5">No sales found for this period.</div>';
-            document.getElementById('salesPeriod').textContent = '';
-            return;
-        }
-
-        document.getElementById('salesPeriod').textContent =
-            ' — ' + (from ? fmtDate(from) : 'All') + (to ? ' to ' + fmtDate(to) : '');
-
-        /* Group: shopKey → { shopCode, shopName, products: { productName → { unit → qty } } } */
-        var shopsMap = {}, shopOrder = [];
-        bills.forEach(function(b) {
-            var sk = (b.shopCode || '') + '|' + (b.shopName || 'Unknown');
-            if (!shopsMap[sk]) {
-                shopsMap[sk] = {
-                    shopCode: b.shopCode || '',
-                    shopName: b.shopName || 'Unknown',
-                    products: {}, prodOrder: []
-                };
-                shopOrder.push(sk);
+    /* Group: productName → [{ shopCode, shopName, qty, unit }] */
+    var prodsMap={}, prodOrder=[];
+    bills.forEach(function(b){
+        (b.items||[]).forEach(function(it){
+            var pname=(it.productName||'Unknown').trim();
+            if(filterProd && pname.toLowerCase()!==filterProd) return;
+            if(!prodsMap[pname]){ prodsMap[pname]={ customers:{}, custOrder:[] }; prodOrder.push(pname); }
+            var pm=prodsMap[pname];
+            var sk=(b.shopCode||'')+'|'+(b.shopName||'Unknown');
+            var ck=sk+'|'+(it.unit||'');
+            if(!pm.customers[ck]){
+                pm.customers[ck]={ shopCode:b.shopCode||'', shopName:b.shopName||'Unknown',
+                                   unit:it.unit||'', qty:0 };
+                pm.custOrder.push(ck);
             }
-            var sh = shopsMap[sk];
-            (b.items || []).forEach(function(it) {
-                var pk = it.productName || 'Unknown';
-                if (!sh.products[pk]) { sh.products[pk] = {}; sh.prodOrder.push(pk); }
-                var uk = it.unit || '';
-                sh.products[pk][uk] = (sh.products[pk][uk] || 0) + parseFloat(it.qty || 0);
-            });
+            pm.customers[ck].qty+=parseFloat(it.qty||0);
         });
+    });
 
-        var anyItems = shopOrder.some(function(sk){ return shopsMap[sk].prodOrder.length > 0; });
-        if (!anyItems) {
-            c.innerHTML = '<div class="text-center text-muted py-5">No product details in stored data.<br>' +
-                '<small>Bills saved after the latest update include product details.</small></div>';
-            return;
-        }
-
-        var html = '<div class="sales-grid">';
-        shopOrder.forEach(function(sk) {
-            var sh = shopsMap[sk];
-            if (!sh.prodOrder.length) return;
-            var label = sh.shopCode ? esc(sh.shopCode) + ' &ndash; ' + esc(sh.shopName) : esc(sh.shopName);
-            html += '<div class="sales-shop-card">' +
-                '<div class="sales-shop-name">' + label + '</div>' +
-                '<table class="sales-item-table">' +
-                '<thead><tr><th>Sr#</th><th>Item</th><th>Qty</th><th>Unit</th></tr></thead><tbody>';
-            var sr = 1;
-            sh.prodOrder.forEach(function(pk) {
-                var unitMap = sh.products[pk];
-                Object.keys(unitMap).forEach(function(uk) {
-                    var qty = unitMap[uk];
-                    if (qty > 0) {
-                        html += '<tr>' +
-                            '<td class="sales-sr">'     + sr++ + '</td>' +
-                            '<td><strong>' + esc(pk) + '</strong></td>' +
-                            '<td class="sales-qty-val">' + fmtQty(qty) + '</td>' +
-                            '<td class="sales-unit-val">' + esc(uk) + '</td>' +
-                            '</tr>';
-                    }
-                });
-            });
-            html += '</tbody></table></div>';
-        });
-        html += '</div>';
-        c.innerHTML = html;
+    if(!prodOrder.length){
+        c.innerHTML='<div class="text-center text-muted py-5">No orders found'+(filterProd?' for selected product.':'.')+'</div>';
+        return;
     }
 
-    /* ── Filter bills by date range ── */
-    function filterByDate(bills, from, to) {
-        if (!from && !to) return bills;
-        return bills.filter(function(b) {
-            var d = (b.saleDate || '').slice(0,10);
-            if (from && d < from) return false;
-            if (to   && d > to)   return false;
-            return true;
+    var html='<div class="product-grid">';
+    prodOrder.forEach(function(pname){
+        var pm=prodsMap[pname];
+        html+='<div class="product-card">'+
+            '<div class="product-card-name">'+esc(pname)+'</div>'+
+            '<table class="product-cust-table">'+
+            '<thead><tr><th>#</th><th>Customer</th><th>Qty</th><th>Unit</th></tr></thead><tbody>';
+        pm.custOrder.forEach(function(ck,i){
+            var cu=pm.customers[ck];
+            html+='<tr>'+
+                '<td style="color:#aaa;font-size:.7rem;width:22px;">'+(i+1)+'</td>'+
+                '<td>'+(cu.shopCode ? '<strong>'+esc(cu.shopCode)+'</strong> ' : '')+esc(cu.shopName)+'</td>'+
+                '<td style="font-weight:700;color:var(--gd);">'+fmtQty(cu.qty)+'</td>'+
+                '<td style="font-size:.76rem;color:#555;">'+esc(cu.unit)+'</td>'+
+                '</tr>';
         });
-    }
-
-    /* ── Merge import (adds new bills, skips existing saleIds) ── */
-    function mergeImport(imported) {
-        var current = null;
-        try { current = JSON.parse(localStorage.getItem(SF_KEY)); } catch(e) {}
-        if (!current || !Array.isArray(current.bills)) current = { bills:[], shops:[] };
-        var existingIds = {};
-        current.bills.forEach(function(b){ existingIds[b.saleId] = true; });
-        var added = 0;
-        (imported.bills||[]).forEach(function(b){
-            if (!existingIds[b.saleId]) { current.bills.push(b); existingIds[b.saleId]=true; added++; }
-        });
-        current.bills.sort(function(a,b){ return b.saleId - a.saleId; });
-        var existingShops = {};
-        (current.shops||[]).forEach(function(s){ existingShops[s.shopId]=true; });
-        (imported.shops||[]).forEach(function(s){
-            if (!existingShops[s.shopId]){ current.shops.push(s); existingShops[s.shopId]=true; }
-        });
-        current.app='SmartFruits'; current.v=1; current.ts=new Date().toLocaleString();
-        localStorage.setItem(SF_KEY, JSON.stringify(current));
-        return { total:current.bills.length, added:added, skipped:(imported.bills||[]).length-added };
-    }
-
-    /* ── Events ── */
-    document.getElementById('btnSummaryReport').addEventListener('click', function(){
-        activateReport('summary');
-        renderSummary(document.getElementById('rptFrom').value, document.getElementById('rptTo').value);
+        html+='</tbody></table>'+
+            '<div style="font-size:.68rem;color:#aaa;margin-top:5px;border-top:1px dashed #eee;padding-top:4px;">'+
+            pm.custOrder.length+' customer(s)</div>'+
+            '</div>';
     });
-    document.getElementById('btnSalesReport').addEventListener('click', function(){
-        activateReport('sales');
-        renderSales(document.getElementById('rptFrom').value, document.getElementById('rptTo').value);
-    });
-    document.getElementById('btnLoadReport').addEventListener('click', function(){
-        var from = document.getElementById('rptFrom').value;
-        var to   = document.getElementById('rptTo').value;
-        if (_activeRpt === 'summary') renderSummary(from, to);
-        else                          renderSales(from, to);
-    });
-    document.getElementById('btnPrintReport').addEventListener('click', function(){ window.print(); });
+    html+='</div>';
+    c.innerHTML=html;
+}
 
-    document.getElementById('importFile').addEventListener('change', function(e){
-        var file = e.target.files[0]; if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(ev){
-            try {
-                var parsed = JSON.parse(ev.target.result);
-                if (!parsed || !Array.isArray(parsed.bills)){ alert('Invalid SmartFruits file.'); return; }
-                var r = mergeImport(parsed);
-                loadData();
-                alert('Import complete!\n\n✅ New bills added: ' + r.added +
-                      '\n⏭ Already existed: ' + r.skipped +
-                      '\n📦 Total in storage: ' + r.total);
-            } catch(ex){ alert('Could not read file.'); }
-        };
-        reader.readAsText(file);
-        this.value = '';
+/* ════════════════════════════════════════════════════════════════
+   IMPORT / EXPORT
+════════════════════════════════════════════════════════════════ */
+function mergeImport(imported){
+    var current=null;
+    try { current=JSON.parse(localStorage.getItem(SF_KEY)); } catch(e) {}
+    if(!current||!Array.isArray(current.bills)) current={bills:[],shops:[]};
+
+    var existingIds={};
+    current.bills.forEach(function(b){ existingIds[b.saleId]=true; });
+
+    var added=0;
+    (imported.bills||[]).forEach(function(b){
+        if(!existingIds[b.saleId]){ current.bills.push(b); existingIds[b.saleId]=true; added++; }
+    });
+    current.bills.sort(function(a,b){ return b.saleId-a.saleId; });
+
+    var existingShops={};
+    (current.shops||[]).forEach(function(s){ existingShops[s.shopId]=true; });
+    (imported.shops||[]).forEach(function(s){
+        if(!existingShops[s.shopId]){ current.shops.push(s); existingShops[s.shopId]=true; }
     });
 
-    document.getElementById('btnExport').addEventListener('click', function(){
-        var raw = localStorage.getItem(SF_KEY);
-        if (!raw){ alert('No data to export.'); return; }
-        var blob = new Blob([raw], {type:'application/json'});
-        var url  = URL.createObjectURL(blob);
-        var a    = document.createElement('a');
-        a.href = url; a.download = 'SmartFruits_' + new Date().toISOString().slice(0,10) + '.json';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-    });
+    current.app='SmartFruits'; current.v=1; current.ts=new Date().toLocaleString();
+    try { localStorage.setItem(SF_KEY, JSON.stringify(current)); } catch(e){ return null; }
+    return { total:current.bills.length, added:added, skipped:(imported.bills||[]).length-added };
+}
 
-    /* ── Start ── */
+/* ════════════════════════════════════════════════════════════════
+   EVENT LISTENERS
+════════════════════════════════════════════════════════════════ */
+/* Report type buttons */
+document.getElementById('btnSummary').addEventListener('click', function(){
+    setActiveReport('summary'); runReport();
+});
+document.getElementById('btnSales').addEventListener('click', function(){
+    setActiveReport('sales'); runReport();
+});
+document.getElementById('btnProduct').addEventListener('click', function(){
+    setActiveReport('product'); runReport();
+});
+
+/* Load button */
+document.getElementById('btnLoad').addEventListener('click', runReport);
+
+/* Today shortcut */
+document.getElementById('btnToday').addEventListener('click', function(){
+    var t=today();
+    document.getElementById('rptFrom').value=t;
+    document.getElementById('rptTo').value=t;
+    runReport();
+});
+
+/* All dates shortcut */
+document.getElementById('btnAllDates').addEventListener('click', function(){
+    document.getElementById('rptFrom').value='';
+    document.getElementById('rptTo').value='';
+    runReport();
+});
+
+/* Print */
+document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
+
+/* Refresh */
+document.getElementById('btnRefresh').addEventListener('click', function(){
+    _lastRaw=null; /* force re-read */
     loadData();
+    showToast('Refreshed!', true);
+});
+
+/* Import */
+document.getElementById('importFile').addEventListener('change', function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+        try {
+            var parsed=JSON.parse(ev.target.result);
+            if(!parsed||!Array.isArray(parsed.bills)){ showToast('Invalid SmartFruits file.', false); return; }
+            var r=mergeImport(parsed);
+            if(!r){ showToast('Storage is full.', false); return; }
+            _lastRaw=null; loadData();
+            showToast('Imported! +' + r.added + ' new, ' + r.skipped + ' skipped. Total: ' + r.total, true);
+        } catch(ex){ showToast('Could not read file.', false); }
+    };
+    reader.readAsText(file);
+    this.value='';
+});
+
+/* Export */
+document.getElementById('btnExport').addEventListener('click', function(){
+    var raw=localStorage.getItem(SF_KEY);
+    if(!raw){ showToast('No data to export.', false); return; }
+    var blob=new Blob([raw],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download='SmartFruits_'+today()+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },3000);
+    showToast('Exported!', true);
+});
+
+/* Product filter change → re-render if product report is active */
+document.getElementById('productFilterSel').addEventListener('change', function(){
+    if(_activeRpt==='product') runReport();
+});
+
+/* ════════════════════════════════════════════════════════════════
+   AUTO-DETECT: real-time updates
+   - 'storage' event fires on THIS tab when ANOTHER tab writes localStorage
+   - setInterval polls every 3 s as backup (same-tab writes don't trigger 'storage')
+════════════════════════════════════════════════════════════════ */
+window.addEventListener('storage', function(e){
+    if(e.key===SF_KEY){ _lastRaw=null; loadData(true); }
+});
+
+setInterval(function(){
+    var raw=null;
+    try { raw=localStorage.getItem(SF_KEY); } catch(e){}
+    if(raw!==_lastRaw){ _lastRaw=raw; loadData(true); }
+}, 3000);
+
+/* ════════════════════════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════════════════════════ */
+(function boot(){
+    /* Default dates: today */
+    var t=today();
+    document.getElementById('rptFrom').value=t;
+    document.getElementById('rptTo').value=t;
+
+    /* Load data and auto-render summary */
+    loadData();
+    if(_data && Array.isArray(_data.bills) && _data.bills.length>0){
+        runReport();
+    }
+})();
 </script>
 </body>
 </html>
