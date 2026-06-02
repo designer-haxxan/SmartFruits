@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>SmartFruits Bridge</title>
+</head>
+<body>
+<!-- ═══════════════════════════════════════════════════════════════
+     SmartFruits Cross-Origin Data Bridge
+     Deployed at : fruititalia.com/offline/bridge.html
+     Purpose     : Lets the GitHub Pages offline app read and watch
+                   fruititalia.com localStorage in real-time via
+                   the postMessage API.
+
+     How it works:
+       1. GitHub Pages embeds this page in a hidden <iframe>.
+       2. On load, bridge reads fruititalia.com localStorage and
+          posts the raw JSON to the parent frame.
+       3. When fruititalia.com writes a new bill, the 'storage'
+          event fires HERE (because this page IS fruititalia.com),
+          and the bridge forwards the update to the parent.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+var SF_KEY = 'sf_data';
+
+/* Send current localStorage content to the parent frame */
+function sendData() {
+    if (window.parent === window) return; /* not in an iframe */
+    var raw = null;
+    try { raw = localStorage.getItem(SF_KEY); } catch(e) {}
+    window.parent.postMessage({ type: 'sf_bridge_data', payload: raw }, '*');
+}
+
+/* 1. Auto-send immediately when embedded as an iframe */
+sendData();
+
+/* 2. Forward real-time updates — storage event fires in ALL
+      fruititalia.com contexts (including this iframe) when ANY
+      fruititalia.com tab writes to localStorage */
+window.addEventListener('storage', function(e) {
+    if (e.key === SF_KEY) sendData();
+});
+
+/* 3. Respond to explicit pull requests from the parent */
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'sf_bridge_request') sendData();
+});
+</script>
+</body>
+</html>

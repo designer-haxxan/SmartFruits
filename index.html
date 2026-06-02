@@ -102,7 +102,7 @@
             display:grid; grid-template-columns:repeat(2,1fr); gap:6px; padding:12px;
         }
         .summary-item {
-            background:#f8fff8; border:1px solid var(--gb);
+            background:#fff; border:1px solid var(--gb);
             border-radius:7px; padding:8px 12px;
             display:flex; justify-content:space-between; align-items:center;
         }
@@ -248,9 +248,41 @@
 
 <!-- ══ No-data screen ══ -->
 <div id="noDataScreen">
-    <div class="nd-icon"><i class="bi bi-database-slash"></i></div>
-    <div class="nd-title">No Offline Data Found</div>
-    <div class="nd-info">
+    <div class="nd-icon" id="ndIcon"><i class="bi bi-database-slash"></i></div>
+    <div class="nd-title" id="ndTitle">No Offline Data Found</div>
+
+    <!-- ── Wrong origin (GitHub Pages / any non-fruititalia.com domain) ── -->
+    <div class="nd-info" id="ndWrongOrigin" style="display:none;">
+
+        <!-- Connecting state (shown first) -->
+        <div id="ndBridgeConnecting" style="text-align:center;padding:8px 0;">
+            <div class="spinner-border text-success spinner-border-sm me-2"></div>
+            <span style="font-size:.85rem;color:#555;">Connecting to fruititalia.com&hellip;</span>
+        </div>
+
+        <!-- Failed state (shown if bridge times out) -->
+        <div id="ndBridgeFailed" style="display:none;">
+            <div style="color:#c0392b;font-weight:700;font-size:.9rem;margin-bottom:8px;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>Could not load data automatically
+            </div>
+            <div style="font-size:.82rem;color:#555;line-height:1.7;">
+                The bridge to fruititalia.com did not respond.<br>
+                Make sure you are online and fruititalia.com is reachable.<br><br>
+                <strong>Manual option:</strong><br>
+                1. Open <a href="https://fruititalia.com/SaleEntry.aspx" target="_blank"
+                   style="color:var(--gp);">fruititalia.com &rarr; Bills</a> and click <strong>Export</strong>.<br>
+                2. Come back here and click <strong>Import</strong> above.
+            </div>
+            <div style="margin-top:10px;">
+                <button onclick="startBridge()" class="btn btn-sm btn-success w-100">
+                    <i class="bi bi-arrow-repeat me-1"></i>Retry
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Correct origin (fruititalia.com / localhost) ── -->
+    <div class="nd-info" id="ndCorrectOrigin">
         <strong>Same browser as SmartFruits?</strong><br>
         Open the <strong>Bills</strong> tab once &mdash; data syncs automatically on every bill you save.<br><br>
         <strong>Getting data from another device?</strong><br>
@@ -369,6 +401,105 @@ var _data       = null;
 var _activeRpt  = 'summary';   /* 'summary' | 'sales' | 'product' */
 var _lastRaw    = null;        /* for polling comparison */
 
+/* ── Origin check ──────────────────────────────────────────────
+   localStorage is scoped per origin (protocol + domain + port).
+   This app must run on the SAME origin as fruititalia.com to
+   read the data written by SaleEntry.aspx.
+─────────────────────────────────────────────────────────────── */
+var MAIN_HOST = 'fruititalia.com';
+var _isCorrectOrigin = (
+    window.location.hostname === MAIN_HOST ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === ''            /* file:// */
+);
+
+function _showNoDataPanel() {
+    var wrongEl  = document.getElementById('ndWrongOrigin');
+    var rightEl  = document.getElementById('ndCorrectOrigin');
+    if (!_isCorrectOrigin) {
+        wrongEl.style.display = '';
+        rightEl.style.display = 'none';
+        /* Kick off the bridge automatically */
+        if (!_bridgeReady) startBridge();
+    } else {
+        wrongEl.style.display = 'none';
+        rightEl.style.display = '';
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CROSS-ORIGIN BRIDGE
+   When running on GitHub Pages (wrong origin), we embed a hidden
+   <iframe> that points to fruititalia.com/offline/bridge.html.
+   That iframe IS a fruititalia.com context, so it can read and
+   watch localStorage there, then postMessage the data to us.
+════════════════════════════════════════════════════════════════ */
+var BRIDGE_URL    = 'https://' + MAIN_HOST + '/offline/bridge.html';
+var _bridgeFrame  = null;
+var _bridgeTimer  = null;
+var _bridgeReady  = false;
+
+function startBridge() {
+    if (_isCorrectOrigin) return; /* not needed on same origin */
+
+    /* Reset UI to connecting state */
+    var conn = document.getElementById('ndBridgeConnecting');
+    var fail = document.getElementById('ndBridgeFailed');
+    if (conn) conn.style.display = '';
+    if (fail) fail.style.display = 'none';
+
+    /* Remove old iframe if retrying */
+    if (_bridgeFrame && _bridgeFrame.parentNode) {
+        _bridgeFrame.parentNode.removeChild(_bridgeFrame);
+    }
+    _bridgeReady = false;
+
+    /* Create hidden iframe — loads bridge.html from fruititalia.com */
+    _bridgeFrame = document.createElement('iframe');
+    _bridgeFrame.src = BRIDGE_URL;
+    _bridgeFrame.style.cssText = 'display:none;width:0;height:0;border:0;position:absolute;top:-9999px;';
+    _bridgeFrame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+    document.body.appendChild(_bridgeFrame);
+
+    /* Timeout: if no data arrives in 8 s, show the failure panel */
+    clearTimeout(_bridgeTimer);
+    _bridgeTimer = setTimeout(function() {
+        if (!_bridgeReady) {
+            if (conn) conn.style.display = 'none';
+            if (fail) fail.style.display = '';
+        }
+    }, 8000);
+}
+
+/* Receive data posted by bridge.html */
+window.addEventListener('message', function(e) {
+    /* Only accept messages from fruititalia.com */
+    if (e.origin !== 'https://' + MAIN_HOST) return;
+    if (!e.data || e.data.type !== 'sf_bridge_data') return;
+
+    _bridgeReady = true;
+    clearTimeout(_bridgeTimer);
+
+    var raw = e.data.payload;
+
+    if (raw) {
+        /* Store received data in THIS origin's localStorage so loadData() works */
+        try { localStorage.setItem(SF_KEY, raw); } catch(err) {}
+        _lastRaw = null;  /* force re-read */
+        loadData();
+        if (_data && _data.bills && _data.bills.length > 0) {
+            runReport();
+        }
+    } else {
+        /* Bridge connected but fruititalia.com has no data yet */
+        var conn = document.getElementById('ndBridgeConnecting');
+        var fail = document.getElementById('ndBridgeFailed');
+        if (conn) { conn.innerHTML = '<span style="color:#888;font-size:.82rem;">Connected to fruititalia.com — no bills saved yet. Save a preorder and this page will update automatically.</span>'; }
+        if (fail) fail.style.display = 'none';
+    }
+});
+
 /* ── Helpers ── */
 function fmtNum(n){ return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 function fmtQty(n){ n=parseFloat(n||0); return n%1===0 ? parseInt(n).toString() : n.toFixed(2); }
@@ -422,6 +553,7 @@ function loadData(silent){
     if (!ok) {
         document.getElementById('syncBadge').textContent = 'No data';
         document.getElementById('syncBadge').classList.remove('live');
+        _showNoDataPanel();   /* show correct explanation based on origin */
         return;
     }
 
@@ -499,14 +631,16 @@ function renderSummary(from, to){
         c.innerHTML='<div class="text-center text-muted py-5">No bills in this period.</div>'; return;
     }
 
-    /* Aggregate: productName → unit → qty */
+    /* Aggregate: productName → { units:{unit→qty}, notes:Set } */
     var groups={}, order=[];
     bills.forEach(function(b){
         (b.items||[]).forEach(function(it){
             var name=(it.productName||'Unknown').trim();
-            if(!groups[name]){ groups[name]={}; order.push(name); }
+            if(!groups[name]){ groups[name]={ units:{}, notes:[] }; order.push(name); }
             var uk=it.unit||'';
-            groups[name][uk]=(groups[name][uk]||0)+parseFloat(it.qty||0);
+            groups[name].units[uk]=(groups[name].units[uk]||0)+parseFloat(it.qty||0);
+            var n=(it.note||'').trim();
+            if(n && groups[name].notes.indexOf(n)===-1) groups[name].notes.push(n);
         });
     });
 
@@ -517,13 +651,17 @@ function renderSummary(from, to){
 
     var html='<div class="summary-grid">';
     order.forEach(function(name){
-        var um=groups[name];
-        var qtyTxt=Object.keys(um).map(function(uk){
-            return fmtQty(um[uk])+(uk?' '+esc(uk):'');
+        var g=groups[name];
+        var qtyTxt=Object.keys(g.units).map(function(uk){
+            return fmtQty(g.units[uk])+(uk?' '+esc(uk):'');
         }).join(' &bull; ');
-        html+='<div class="summary-item">'+
+        var notesHtml=g.notes.length
+            ? '<div style="font-size:.72rem;color:#888;font-style:italic;margin-top:3px;width:100%;">&#9998; '+esc(g.notes.join(' &middot; '))+'</div>'
+            : '';
+        html+='<div class="summary-item'+(notesHtml?' flex-wrap':'')+'">'+
             '<span class="s-name">'+esc(name)+'</span>'+
             '<span class="s-qty">'+qtyTxt+'</span>'+
+            notesHtml+
             '</div>';
     });
     html+='</div>';
@@ -784,6 +922,9 @@ setInterval(function(){
     var t=today();
     document.getElementById('rptFrom').value=t;
     document.getElementById('rptTo').value=t;
+
+    /* Show the correct no-data explanation immediately (before AJAX) */
+    _showNoDataPanel();
 
     /* Load data and auto-render summary */
     loadData();
